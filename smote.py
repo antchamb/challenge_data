@@ -54,37 +54,27 @@ valid_cols = y_train_bin.columns[y_train_bin.sum() >= min_pos]
 y_train_bin = y_train_bin[valid_cols]
 print(f"Kept {len(valid_cols)} columns with at least {min_pos} positive samples")
 
+X_resampled_dict = {}
+y_resampled_dict = {}
 
-X_smoted= []
-y_smoted = []
-
-for i, col in tqdm(enumerate(y_train_bin.columns)):
-    print(f"Applying SMOTE on label: {col}")
+for col in tqdm(y_train_bin.columns):
     sm = SMOTE(random_state=42)
+    X_res, y_res = sm.fit_resample(x_train, y_train_bin[col])
     
-    # Fit on X and the current label
-    X_resampled, y_resampled = sm.fit_resample(x_train, y_train_bin[col])
-    
-    if i == 0:
-        X_smoted = X_resampled
-        y_smoted = pd.DataFrame(y_resampled, columns=[col])
+    X_resampled_dict[col] = X_res
+    y_resampled_dict[col] = y_res
 
-    else:
-        y_smoted[col] = y_resampled
+    print(f"{col}: 0s = {sum(y_res == 0)}, 1s = {sum(y_res == 1)}")
 
 
-# Final results
-X_balanced = X_smoted
-y_balanced = y_smoted
-
-for col in y_balanced.columns:
-    counts = y_balanced[col].value_counts()
-    print(f"{col} → 0s: {counts.get(0, 0)}, 1s: {counts.get(1, 0)}")
+# for col in y_balanced.columns:
+#     counts = y_balanced[col].value_counts()
+#     print(f"{col} → 0s: {counts.get(0, 0)}, 1s: {counts.get(1, 0)}")
 
 
-for col in y_balanced.columns:
-    plt.hist(y_balanced[col], color='skyblue', edgecolor='black')
-    plt.title(f'{col}')
-    plt.show()
+# for col in y_balanced.columns:
+#     plt.hist(y_balanced[col], color='skyblue', edgecolor='black')
+#     plt.title(f'{col}')
+#     plt.show()
 
-# check for a model by label and a smote by label to classify for each one and create synthetic map for gas
+# # check for a model by label and a smote by label to classify for each one and create synthetic map for gas
